@@ -1,4 +1,158 @@
-{%extends "layout.html"%}
-{% block content%}
-    <h1>About Page</h1>
+{% extends "layout.html" %}
+{% block content %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Cards</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='serv.css') }}">
+    <style>
+        /* Styling for the search box */
+        #searchInput {
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 20px;
+            margin-left: 30px;
+
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+    <br>
+    <div class="container">
+        <!-- Search input -->
+        <input type="text" id="searchInput" placeholder="Search by a service name...">
+        
+        <div class="section_our_solution">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <div class="our_solution_category">
+                        <div class="solution_cards_box">
+                            <!-- Card 1 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/ApplianceRepair.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Appliance Repair</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        offers professional and reliable repair services for a wide range of home appliances, ensuring your devices are back up and running efficiently. Our experienced technicians are equipped to handle various appliance brands and models, providing timely solutions to get your appliances back in working order. Trust us for quality repairs, transparent pricing, and exceptional customer service you can see service providers.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Card 2 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/ferMove.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Moving Furniture</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        provides professional relocation services for homes and businesses. Our experienced team ensures safe and efficient transportation of your furniture within the same building, across town, or to a new city,. We handle moves of all sizes, from single items to entire households. With competitive rates and exceptional service, we make moving easy and stress-free. Trust us for a smooth transition to your new location.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 3 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/HousePainters.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Painting</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        offers top-quality residential and commercial painting services. Our skilled painters use high-quality materials to ensure a flawless finish. We handle interior and exterior painting projects of all sizes. With attention to detail and a commitment to customer satisfaction, we transform spaces with vibrant and long-lasting paint solutions. Choose us for a refreshed and appealing look for your property.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 4 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/elec.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Electrical</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        provides professional electrical services for homes and businesses. Our certified electricians ensure safe and efficient electrical installations, repairs, and maintenance. From lighting installations to electrical panel upgrades, we handle a wide range of electrical tasks with expertise. Trust us for reliable solutions and exceptional customer service you can see service providers.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 5 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/plumping craft owner.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Plumbing</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        provides professional plumbing services for homes and businesses. Our licensed plumbers offer a wide range of services, including pipe repairs, drain cleaning, fixture installations, and more. With years of experience and a commitment to quality, we ensure efficient and reliable plumbing solutions. Trust us for prompt service and customer satisfaction you can see service providers.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='plumping.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 6 -->
+                            <div class="solution_card">
+                                <div class="hover_color_bubble"></div>
+                                <div class="so_top_icon">
+                                    <img src="{{ url_for('static', filename='img/carpentery1.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+
+                                </div>
+                                <div class="solu_title">
+                                    <h4>Carpentry</h4>
+                                </div>
+                                <div class="solu_description">
+                                    <p>
+                                        Provides professional carpentry services for homes and businesses. Specializes in custom furniture, cabinetry, and woodwork. Delivers high-quality craftsmanship tailored to your needs. Offers custom-built pieces and general carpentry repairs. Dedicated to exceptional service and attention to detail. Ensuring lasting and beautiful results for every project.
+                                    </p>
+                                    <button type="button" class="read_more_btn" onclick="window.location.href='carpentry.html'">Click to see the owners of this craft</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // Filter cards based on search input
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchQuery = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.solution_card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('.solu_title h4').innerText.toLowerCase();
+
+                if (title.includes(searchQuery)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
 {% endblock content %}
