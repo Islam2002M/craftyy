@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carpentry page</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <style>
+    .card {
+      width: 100%;
+      margin-bottom: 20px; /* Add margin bottom to create space between cards */
+    }
+  </style>
+</head>
+
+<body>
+  {% extends "layout.html" %}
+  {% block content %}
+  <br>
+  <div class="container">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <div class="col">
+        <div class="card">
+            <img src="{{ url_for('static', filename='img/plumping service.jpg') }}" style="height: 400px;" class="card-img-top" alt="plumbing image 1">
+            <div class="card-body">
+              <h5 class="card-title">Craft Owner Name: John Doe</h5>
+              <p class="card-text">Location: Nablus, Palestine</p>
+              <p class="card-text">Description: Expert plumber with over 10 years of experience. Specializes in residential and commercial plumbing services.</p>
+            </div>
+      </div>
+      </div>
+      <div class="col">
+        <div class="card">
+            <img src="{{ url_for('static', filename='img/plumping service.jpg') }}" style="height: 400px;" class="card-img-top" alt="plumbing image 1">
+            <div class="card-body">
+              <h5 class="card-title">Craft Owner Name: ali ahmad</h5>
+              <p class="card-text">Location: Ramallah, Palestine</p>
+              <p class="card-text">Description:  As a licensed plumber with a passion for problem-solving, I thrive on tackling complex plumbing challenges. From sewer line repairs to water heater installations, my attention to detail and dedication to excellence guarantee reliable solutions for your plumbing needs.</p>
+            </div>
+      </div>
+      </div>
+      <div class="col">
+        <div class="card">
+            <img src="{{ url_for('static', filename='img/plumping service.jpg') }}" style="height: 400px;" class="card-img-top" alt="plumbing image 1">
+            <div class="card-body">
+              <h5 class="card-title">Craft Owner Name: amjad hawash</h5>
+              <p class="card-text">Location: Hebron, Palestine</p>
+              <p class="card-text">Description: With 15 years of hands-on experience, I bring a wealth of knowledge to every plumbing project. Whether it's fixing a leaky faucet or installing a new plumbing system, I ensure top-quality workmanship and customer satisfaction</p>
+            </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+</body>
+
+</html>
+{% endblock %}

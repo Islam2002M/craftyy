@@ -41,5 +41,12 @@ class Service(db.Model):
     UserProvides = db.relationship("User", backref="provider", lazy=True)
     #lessons = db.relationship("Lesson", backref="course_name", lazy=True)
 
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    serviceName = db.Column(db.String(50), unique=True, nullable=False)
+    Needs = db.Column(db.Text, nullable=False)  # Set nullable to True
+    UserProvides = db.relationship("User", backref="provider", lazy=True)
+    #lessons = db.relationship("Lesson", backref="course_name", lazy=True)
+
     def __repr__(self):
         return f"Service('{self.Name}')"
