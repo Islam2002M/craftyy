@@ -41,7 +41,11 @@
                     <div class="form-group my-3">
                         {{ form.submit(class='btn btn-outline-info')}}
                     </div>
-            
+                    
+                    <div class="form-check">
+                        {{form.remember(class='form-check-input')}}
+                        {{form.remember.label(class='form-check-input-label')}}
+                    </div>
                 </fieldset>
             </form>
             <br>
