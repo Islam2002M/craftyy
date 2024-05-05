@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-from pythonic.models import User
-from flask import render_template, url_for, flash, redirect
-from pythonic.forms import RegistrationForm, LoginForm
-=======
 import secrets
 from PIL import Image
 import os
 from pythonic.models import User, Work, Service
 from flask import render_template, url_for, flash, redirect, request
 from pythonic.forms import RegistrationForm, LoginForm, UpdateProfileForm
->>>>>>> a18e5681c79021036e41ae3d1f00b584f9c6f01b
 from pythonic import app, bcrypt, db
 from flask_login import (
     login_required,
@@ -32,7 +26,6 @@ def save_picture(form_picture):
     i.save(picture_path)
     return picture_name
 
-
 @app.route("/")
 @app.route("/index")
 def home():
@@ -52,7 +45,9 @@ def register():
         return redirect(url_for("home"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
+            "utf-8"
+        )
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -81,34 +76,16 @@ def login():
         return redirect(url_for("home"))
     form = LoginForm()
     if form.validate_on_submit():
-<<<<<<< HEAD
-        # In a real application, you would query the database to check user credentials
-        # For now, I'm assuming you have a user with fixed credentials for testing
-        if (
-            form.email.data == "omar@email.com"
-            and form.password.data == "PASS!!word123"
-        ):
-=======
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
->>>>>>> a18e5681c79021036e41ae3d1f00b584f9c6f01b
             flash("You have been logged in!", "success")
             return redirect(next_page) if next_page else redirect(url_for("home"))
         else:
             flash("Login Unsuccessful. Please check credentials", "danger")
     return render_template("login.html", title="Login", form=form)
 
-<<<<<<< HEAD
-@app.route('/plumbing')  # Corrected route name from 'plumping' to 'plumbing'
-def plumbing():          # Corrected function name from 'plumping' to 'plumbing'
-    return render_template('plumbing.html')  # Corrected template name from 'plumping.html' to 'plumbing.html'
-
-@app.route('/booking')
-def booking():
-    return render_template('booking.html')
-=======
 @app.route("/logout")
 def logout():
     logout_user()
@@ -146,4 +123,10 @@ def dashboard():
         profile_form=profile_form,
         image_file=image_file,
     )
->>>>>>> a18e5681c79021036e41ae3d1f00b584f9c6f01b
+@app.route('/plumbing')  # Corrected route name from 'plumping' to 'plumbing'
+def plumbing():          # Corrected function name from 'plumping' to 'plumbing'
+    return render_template('plumbing.html')  # Corrected template name from 'plumping.html' to 'plumbing.html'
+
+@app.route('/booking')
+def booking():
+    return render_template('booking.html')
