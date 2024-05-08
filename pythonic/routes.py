@@ -4,7 +4,7 @@ import os
 from instance.helper import get_plumbing_users_from_database
 from pythonic.models import User, Work, Service
 from flask import render_template, url_for, flash, redirect, request
-from pythonic.forms import RegistrationForm, LoginForm, UpdateProfileForm
+from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
 from pythonic import app, bcrypt, db
 from flask_login import (
     login_required,
@@ -129,6 +129,32 @@ def dashboard():
 def plumbing():          
     plumbing_users = get_plumbing_users_from_database()
     return render_template('plumbing.html', plumbing_users=plumbing_users)
-@app.route('/booking')
+@app.route('/booking', methods=['GET', 'POST'])
 def booking():
-    return render_template('booking.html')
+    problem_form = ProblemForm()  # Instantiate the ProblemForm
+    return render_template('booking.html', problem_form=problem_form)
+# @app.route('/handle_problem_form', methods=['POST'])
+# def handle_problem_form():
+#     if request.method == 'POST':
+#         # Retrieve the problem description from the form data
+#         problem_description = request.form.get('problemDescription')
+
+#         # Here, you can handle the form submission, process the problem description,
+#         # and return any necessary response. For example, you might perform some
+#         # processing based on the problem description and return a recommendation.
+
+#         # For demonstration purposes, let's just return the problem description
+#         return f"The problem description submitted is: {problem_description}"
+    
+@app.route('/handle_problem_form', methods=['POST'])
+def handle_problem_form():
+    if request.method == 'POST':
+        # Retrieve the problem description from the form data
+        problem_description = request.form.get('problemDescription')
+
+        # Here, you can handle the form submission, process the problem description,
+        # and return any necessary response. For example, you might perform some
+        # processing based on the problem description and return a recommendation.
+
+        # For demonstration purposes, let's render a template with the problem description
+        return render_template('recommendation.html', problem_description=problem_description)

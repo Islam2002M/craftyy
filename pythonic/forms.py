@@ -113,3 +113,6 @@ class UpdateProfileForm(FlaskForm):
                 raise ValidationError(
                     "Email already exists! Please chosse a different one"
                 )
+class ProblemForm(FlaskForm):
+    problem_description = TextAreaField('Problem Description', validators=[DataRequired()])
+    submit = SubmitField('Submit')

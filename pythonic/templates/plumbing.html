@@ -55,4 +55,21 @@
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>
+<script>
+  // Filter cards based on search input
+  document.getElementById('searchInput').addEventListener('keyup', function() {
+      const searchQuery = this.value.toLowerCase();
+      const cards = document.querySelectorAll('.solution_card');
+
+      cards.forEach(card => {
+          const location = card.querySelector('.card-body p:nth-of-type(1)').innerText.toLowerCase();
+
+          if (location.includes(searchQuery)) {
+              card.style.display = 'block';
+          } else {
+              card.style.display = 'none';
+          }
+      });
+  });
+</script>
 {% endblock %}
