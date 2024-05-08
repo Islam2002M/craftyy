@@ -11,6 +11,9 @@
     </style>
 </head>
 <body>
+    {% extends "layout.html" %}
+  {% block content %}
+  <br>
     <div class="container">
         <h1>Recommendation</h1>
         <p>The problem description submitted is: {{ problem_description }}</p>
@@ -36,3 +39,4 @@
     <!-- Add custom JavaScript here -->
 </body>
 </html>
+{% endblock %}
