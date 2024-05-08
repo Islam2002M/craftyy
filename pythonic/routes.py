@@ -1,6 +1,7 @@
 import secrets
 from PIL import Image
 import os
+from instance.helper import get_plumbing_users_from_database
 from pythonic.models import User, Work, Service
 from flask import render_template, url_for, flash, redirect, request
 from pythonic.forms import RegistrationForm, LoginForm, UpdateProfileForm
@@ -19,7 +20,7 @@ def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_name = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, "static/user_pics", picture_name)
+    picture_path = os.path.join(app.root_path, "static", picture_name)
     output_size = (150, 150)
     i = Image.open(form_picture)
     i.thumbnail(output_size)
@@ -37,7 +38,8 @@ def about():
 
 @app.route("/services")
 def services():
-    return render_template('services.html')
+    user = get_plumbing_users_from_database() 
+    return render_template('services.html', user=user)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -123,10 +125,10 @@ def dashboard():
         profile_form=profile_form,
         image_file=image_file,
     )
-@app.route('/plumbing')  # Corrected route name from 'plumping' to 'plumbing'
-def plumbing():          # Corrected function name from 'plumping' to 'plumbing'
-    return render_template('plumbing.html')  # Corrected template name from 'plumping.html' to 'plumbing.html'
-
+@app.route('/plumbing')  
+def plumbing():          
+    plumbing_users = get_plumbing_users_from_database()
+    return render_template('plumbing.html', plumbing_users=plumbing_users)
 @app.route('/booking')
 def booking():
     return render_template('booking.html')

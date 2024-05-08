@@ -1,5 +1,6 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solution Cards</title>
@@ -12,23 +13,26 @@
             padding: 10px;
             margin-bottom: 20px;
             margin-left: 30px;
-
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
         }
     </style>
+</head>
+<body>
+    {% extends "layout.html" %}
+    {% block content %}
     <br>
     <div class="container">
         <!-- Search input -->
         <input type="text" id="searchInput" placeholder="Search by a service name...">
-        
+
         <div class="section_our_solution">
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
                     <div class="our_solution_category">
                         <div class="solution_cards_box">
-                            <!-- Card 1 -->
+                            <!-- Card 1: Appliance Repair -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
@@ -44,8 +48,8 @@
                                     <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
                                 </div>
                             </div>
-                            
-                            <!-- Card 2 -->
+
+                            <!-- Card 2: Moving Furniture -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
@@ -62,7 +66,7 @@
                                 </div>
                             </div>
 
-                            <!-- Card 3 -->
+                            <!-- Card 3: Painting -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
@@ -79,7 +83,7 @@
                                 </div>
                             </div>
 
-                            <!-- Card 4 -->
+                            <!-- Card 4: Electrical -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
@@ -96,7 +100,7 @@
                                 </div>
                             </div>
 
-                            <!-- Card 5 -->
+                            <!-- Card 5: Plumbing -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
@@ -113,12 +117,11 @@
                                  </div>
                             </div>
 
-                            <!-- Card 6 -->
+                            <!-- Card 6: Carpentry -->
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
                                     <img src="{{ url_for('static', filename='img/carpentery1.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
-
                                 </div>
                                 <div class="solu_title">
                                     <h4>Carpentry</h4>
@@ -130,6 +133,9 @@
                                     <button type="button" class="read_more_btn" onclick="window.location.href='carpentry.html'">Click to see the owners of this craft</button>
                                 </div>
                             </div>
+
+                          
+
                         </div>
                     </div>
                 </div>
@@ -138,7 +144,6 @@
     </div>
 
     <script>
-        
         // Filter cards based on search input
         document.getElementById('searchInput').addEventListener('keyup', function() {
             const searchQuery = this.value.toLowerCase();
@@ -155,5 +160,6 @@
             });
         });
     </script>
-{% endblock content %}
-`
+    {% endblock %}
+</body>
+</html>

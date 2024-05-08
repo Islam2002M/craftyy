@@ -26,7 +26,7 @@ class RegistrationForm(FlaskForm):
             Regexp(
                 "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,32}$"
             ),
-        ],
+        ]
     )
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
