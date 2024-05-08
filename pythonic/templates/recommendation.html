@@ -4,10 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recommendation</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Add custom CSS styles here */
+    </style>
 </head>
 <body>
-    <h1>Recommendation</h1>
-    <p>The problem description submitted is: {{ problem_description }}</p>
-    <!-- You can include more HTML content here -->
+    <div class="container">
+        <h1>Recommendation</h1>
+        <p>The problem description submitted is: {{ problem_description }}</p>
+        
+        <div class="row">
+            {% for craft_owner_name, craft_owner_description in recommended_craft_owner_data %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ craft_owner_name }}</h5>
+                        <p class="card-text">{{ craft_owner_description }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Add custom JavaScript here -->
 </body>
 </html>

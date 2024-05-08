@@ -1,7 +1,7 @@
+
 import secrets
 from PIL import Image
 import os
-from instance.helper import get_plumbing_users_from_database
 from pythonic.models import User, Work, Service
 from flask import render_template, url_for, flash, redirect, request
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
@@ -10,9 +10,13 @@ from flask_login import (
     login_required,
     login_user,
     current_user,
-    logout_user,
-    login_required,
+    logout_user
 )
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 
@@ -145,16 +149,66 @@ def booking():
 
 #         # For demonstration purposes, let's just return the problem description
 #         return f"The problem description submitted is: {problem_description}"
-    
-@app.route('/handle_problem_form', methods=['POST'])
+# Function to preprocess text
+def preprocess_text(text):
+    # Tokenization
+    tokens = word_tokenize(text.lower())
+
+    # Removing stop words and non-alphabetic tokens
+    stop_words = set(stopwords.words("english"))
+    filtered_tokens = [word for word in tokens if word.casefold() not in stop_words and word.isalpha()]
+
+    # Lemmatization
+    lemmatizer = WordNetLemmatizer()
+    preprocessed_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+
+    return " ".join(preprocessed_tokens)
+
+# Function to recommend craft owners based on cosine similarity
+def recommend_craft_owners(craft_owner_descriptions, customer_problem_description):
+    # Preprocess craft owner descriptions and customer problem description
+    preprocessed_craft_owner_descriptions = [preprocess_text(desc) for desc in craft_owner_descriptions]
+    preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
+
+    # Calculate TF-IDF vectors
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(preprocessed_craft_owner_descriptions + [preprocessed_customer_problem_description])
+
+    # Calculate cosine similarity
+    similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
+
+    # Get craft owners IDs sorted by similarity score in descending order
+    craft_owner_ids = sorted(range(len(similarity_matrix)), key=lambda i: similarity_matrix[i], reverse=True)
+
+    return craft_owner_ids
 def handle_problem_form():
-    if request.method == 'POST':
+    problem_form = ProblemForm(request.form)
+    if request.method == 'POST' and problem_form.validate():
         # Retrieve the problem description from the form data
-        problem_description = request.form.get('problemDescription')
+        problem_description = problem_form.problem_description.data
 
-        # Here, you can handle the form submission, process the problem description,
-        # and return any necessary response. For example, you might perform some
-        # processing based on the problem description and return a recommendation.
+        # Retrieve craft owners' names and descriptions from the User table in the database
+        craft_owners = User.query.filter_by(user_type='craft_owner').all()
+        craft_owner_data = [(craft_owner.username, craft_owner.description) for craft_owner in craft_owners]
 
-        # For demonstration purposes, let's render a template with the problem description
-        return render_template('recommendation.html', problem_description=problem_description)
+        # Recommend craft owners based on cosine similarity
+        recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, problem_description)
+
+        # Render template with recommendation results
+        return render_template('recommendation.html', problem_description=problem_description, recommended_craft_owner_data=recommended_craft_owner_data)
+    
+    # If form is not valid, render the form again
+    return render_template('booking.html', problem_form=problem_form)
+# @app.route('/handle_problem_form', methods=['POST'])
+# def handle_problem_form():
+#     problem_form = ProblemForm(request.form)
+#     if request.method == 'POST' and problem_form.validate():
+#         # Retrieve the problem description from the form data
+#         problem_description = problem_form.problem_description.data
+
+#         # Here, you can handle the form submission, process the problem description,
+#         # and return any necessary response. For example, you might perform some
+#         # processing based on the problem description and return a recommendation.
+
+#         # For demonstration purposes, let's render a template with the problem description
+#         return render_template('recommendation.html', problem_description=problem_description)
