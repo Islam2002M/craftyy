@@ -2,6 +2,7 @@ import secrets
 import os
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
+from instance.helper import get_plumbing_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
 from pythonic import app, bcrypt, db
 from flask_login import login_required, login_user, current_user, logout_user
@@ -115,7 +116,7 @@ def dashboard():
 
 @app.route('/plumbing')  
 def plumbing():          
-    plumbing_users = User.query.filter_by(user_type='craft_owner').all()
+    plumbing_users = get_plumbing_users_from_database()
     return render_template('plumbing.html', plumbing_users=plumbing_users)
 
 @app.route('/booking', methods=['GET', 'POST'])
