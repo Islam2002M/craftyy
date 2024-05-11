@@ -2,7 +2,7 @@ import secrets
 import os
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
-from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database
+from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
 from pythonic import app, bcrypt, db
 from flask_login import login_required, login_user, current_user, logout_user
@@ -129,6 +129,20 @@ def electrical():
 def cleaning():          
     cleaning_users = get_cleaning_users_from_database()
     return render_template('electrical.html', electrical_users=cleaning_users)
+@app.route('/movingFur')  
+def movingFur():          
+    movingFur_users = get_movingFur_users_from_database()
+    return render_template('movingFur.html', movingFur_users=movingFur_users)
+
+@app.route('/Painting')  
+def Painting():          
+    Painting_users = get_Painting_users_from_database()
+    return render_template('Painting.html', Painting_users=Painting_users)
+
+@app.route('/Carpentry')  
+def Carpentry():          
+    Carpentry_users = get_Carpentry_users_from_database()
+    return render_template('Carpentry.html', Carpentry_users=Carpentry_users)
 
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
