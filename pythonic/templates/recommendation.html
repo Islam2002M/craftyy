@@ -15,14 +15,16 @@
         
         <div class="row">
             {% for craft_owner_name, craft_owner_description in recommended_craft_owner_data %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ craft_owner_name }}</h5>
-                        <p class="card-text">{{ craft_owner_description }}</p>
+                {% if loop.index <= 5 %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ craft_owner_name }}</h5>
+                                <p class="card-text">{{ craft_owner_description }}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>
