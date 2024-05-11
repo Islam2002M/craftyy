@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plumbing Service Page</title>
+  <title>Cleaning Service Page</title>
   <style>
     .card {
       /* margin-bottom: 20px; */
@@ -40,13 +40,13 @@
   <br>
   <div class="container">
     <!-- Search input -->
-    <input type="text" id="searchInput" placeholder="Search by a plumber Location ...">
+    <input type="text" id="searchInput" placeholder=" Search by Location...">
     <div class="row row-cols-1 row-cols-md-3 g-4" id="cardContainer">
-      {% for user in plumbing_users %}
+      {% for user in cleaning_users %}
       <div class="col">
         <div class="card solution_card" style="height: auto;">
           <div class="card-image">
-            <img src="{{ url_for('static', filename=user.image_file) }}" alt="Plumbing Image">
+            <img src="{{ url_for('static', filename=user.image_file) }}" alt="cleaning Image">
           </div>
           <div class="card-body">
             <h5 class="card-title">Craft Owner Name: {{ user.username }}</h5>

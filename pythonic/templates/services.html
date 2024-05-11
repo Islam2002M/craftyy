@@ -17,6 +17,7 @@
             border-radius: 5px;
             font-size: 16px;
         }
+        
     </style>
 </head>
 <body>
@@ -36,17 +37,16 @@
                             <div class="solution_card">
                                 <div class="hover_color_bubble"></div>
                                 <div class="so_top_icon">
-                                    <img src="{{ url_for('static', filename='img/ApplianceRepair.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
+                                    <img src="{{ url_for('static', filename='img/ca4.jpg') }}" alt="Image" width="180" height="180" style="object-fit: cover;">
                                 </div>
                                 <div class="solu_title">
-                                    <h4>Appliance Repair</h4>
+                                    <h4>Cleaning</h4>
                                 </div>
                                 <div class="solu_description">
                                     <p>
-                                        offers professional and reliable repair services for a wide range of home appliances, ensuring your devices are back up and running efficiently. Our experienced technicians are equipped to handle various appliance brands and models, providing timely solutions to get your appliances back in working order. Trust us for quality repairs, transparent pricing, and exceptional customer service you can see service providers.
-                                    </p>
-                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
-                                </div>
+                                        Our professional cleaning service offers reliable solutions for maintaining cleanliness and hygiene in your home or office. Our experienced team specializes in thorough cleaning of various spaces, including homes, offices, and commercial establishments. We are equipped with the latest tools and techniques to ensure effective cleaning of every corner, leaving your space sparkling clean and sanitized. Trust us for meticulous attention to detail, transparent pricing, and exceptional customer service that exceeds your expectations.       </p>
+                                        <a  class="read_more_btn" href="{{url_for('cleaning')}}">Click to see the owners of this craft</a>               
+                                    </div>
                             </div>
 
                             <!-- Card 2: Moving Furniture -->
@@ -96,7 +96,7 @@
                                     <p>
                                         provides professional electrical services for homes and businesses. Our certified electricians ensure safe and efficient electrical installations, repairs, and maintenance. From lighting installations to electrical panel upgrades, we handle a wide range of electrical tasks with expertise. Trust us for reliable solutions and exceptional customer service you can see service providers.
                                     </p>
-                                    <button type="button" class="read_more_btn" onclick="window.location.href='electrical.html'">Click to see the owners of this craft</button>
+                                    <a  class="read_more_btn" href="{{url_for('electrical')}}">Click to see the owners of this craft</a>               
                                 </div>
                             </div>
 
@@ -159,6 +159,19 @@
                 }
             });
         });
+        // Get the maximum height of cards and set all cards to that height
+        window.onload = function() {
+            const cards = document.querySelectorAll('.solution_card');
+            let maxHeight = 0;
+
+            cards.forEach(card => {
+                maxHeight = Math.max(maxHeight, card.offsetHeight);
+            });
+
+            cards.forEach(card => {
+                card.style.height = maxHeight + 'px';
+            });
+        };
     </script>
     {% endblock %}
 </body>

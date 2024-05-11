@@ -6,20 +6,14 @@
   <title>Plumbing Service Page</title>
   <style>
     .card {
-      /* margin-bottom: 20px; */
+      height: auto; /* Set height to auto to adjust dynamically */
+      
       transition: transform 0.3s, box-shadow 0.3s;
     }
 
     .card:hover {
       box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.2);
       transform: scale(1.05);
-    }
-
-
-    .card-image img {
-      width: 100%;
-      height: 400px;
-      padding: 20px;
     }
 
     /* Styling for the search box */
@@ -40,14 +34,12 @@
   <br>
   <div class="container">
     <!-- Search input -->
-    <input type="text" id="searchInput" placeholder="Search by a plumber Location ...">
+    <input type="text" id="searchInput" placeholder="Search by an electrical Location ...">
     <div class="row row-cols-1 row-cols-md-3 g-4" id="cardContainer">
-      {% for user in plumbing_users %}
+      {% for user in electrical_users %}
       <div class="col">
         <div class="card solution_card" style="height: auto;">
-          <div class="card-image">
-            <img src="{{ url_for('static', filename=user.image_file) }}" alt="Plumbing Image">
-          </div>
+          <img src="{{ url_for('static', filename=user.image_file) }}" style="height: 400px;width: 100%; padding: 20px;" class="card-img-top" alt="Electrical Image">
           <div class="card-body">
             <h5 class="card-title">Craft Owner Name: {{ user.username }}</h5>
             <p class="card-text">Location: {{ user.address }}</p>

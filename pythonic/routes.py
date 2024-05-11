@@ -2,7 +2,7 @@ import secrets
 import os
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
-from instance.helper import get_plumbing_users_from_database
+from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
 from pythonic import app, bcrypt, db
 from flask_login import login_required, login_user, current_user, logout_user
@@ -12,6 +12,9 @@ from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from pythonic.models import User
+from nltk import pos_tag
+from nltk.corpus import wordnet
+from nltk.stem.porter import PorterStemmer
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
@@ -118,6 +121,14 @@ def dashboard():
 def plumbing():          
     plumbing_users = get_plumbing_users_from_database()
     return render_template('plumbing.html', plumbing_users=plumbing_users)
+@app.route('/electrical')  
+def electrical():          
+    electrical_users = get_electrical_users_from_database()
+    return render_template('electrical.html', electrical_users=electrical_users)
+@app.route('/cleaning')  
+def cleaning():          
+    cleaning_users = get_cleaning_users_from_database()
+    return render_template('electrical.html', electrical_users=cleaning_users)
 
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
@@ -145,41 +156,47 @@ def handle_problem_form():
     return render_template('booking.html', problem_form=problem_form)
 
 def preprocess_text(text):
-    # Tokenization
-    tokens = word_tokenize(text)
-
-    # Removing stop words and non-alphabetic tokens
+    if text is None:
+        return ""  # Return empty string if text is None
+    
+    # Tokenization, filtering, lemmatization, and stemming
     stop_words = set(stopwords.words("english"))
-    filtered_tokens = [word for word in tokens if word.casefold() not in stop_words and word.isalpha()]
-
-    # Lemmatization
     lemmatizer = WordNetLemmatizer()
-    preprocessed_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+    stemmer = PorterStemmer()
+    preprocessed_tokens = []
+    for word, tag in pos_tag(word_tokenize(text)):
+        if word.casefold() not in stop_words and word.isalpha():
+            pos = get_wordnet_pos(tag)
+            if pos:
+                preprocessed_tokens.append(lemmatizer.lemmatize(word, pos))
+            else:
+                preprocessed_tokens.append(lemmatizer.lemmatize(word))
+    stemmed_text = ' '.join([stemmer.stem(word) for word in preprocessed_tokens])
+    print("Preprocessed Text:", stemmed_text)  # Debugging print statement
+    return stemmed_text
 
-    return " ".join(preprocessed_tokens)
+def get_wordnet_pos(tag):
+    if tag.startswith("J"):
+        return wordnet.ADJ
+    elif tag.startswith("V"):
+        return wordnet.VERB
+    elif tag.startswith("N"):
+        return wordnet.NOUN
+    elif tag.startswith("R"):
+        return wordnet.ADV
+    else:
+        return None
 
 def recommend_craft_owners(craft_owner_descriptions, customer_problem_description):
-    # Extract descriptions from tuples
-    craft_owner_texts = [desc[1] for desc in craft_owner_descriptions]
-
     # Preprocess craft owner descriptions and customer problem description
-    preprocessed_craft_owner_descriptions = [preprocess_text(desc) for desc in craft_owner_texts]
+    preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) for desc in craft_owner_descriptions]
     preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
-
-    # Print preprocessed descriptions for debugging purposes
-    print("Preprocessed Craft Owner Descriptions:")
-    for desc in preprocessed_craft_owner_descriptions:
-        print(desc)
-
-    print("\nPreprocessed Customer Problem Description:")
-    print(preprocessed_customer_problem_description)
 
     # Calculate TF-IDF vectors
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(preprocessed_craft_owner_descriptions + [preprocessed_customer_problem_description])
 
-    print("TF-IDF Matrix:")
-    print(tfidf_matrix.toarray())
+    print("TF-IDF Matrix:", tfidf_matrix.toarray())  # Debugging print statement
 
     # Calculate cosine similarity
     similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
