@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>movingFur Service Page</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <style>
+    .card {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.2);
+      transform: scale(1.05);
+    }
+
+    /* Styling for the search box and dropdown */
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+        width: 45%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    #filterSelect {
+        width: 15%; /* Adjust the width here */
+        padding: 10px; /* Adjust padding as needed */
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  {% extends "layout.html" %}
+  {% block content %}
+  <br>
+  <div class="container">
+    <div class="search-container">
+      <!-- Search input -->
+      <input type="text" id="searchInput" placeholder="Search...">
+      
+      <!-- Filter dropdown -->
+      <select id="filterSelect">
+        <option value="location">Location</option>
+        <option value="craftowner">Craft Owner Name</option>
+      </select>
+    </div>
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="cardContainer">
+      {% for user in movingFur_users %}
+      <div class="col">
+        <div class="card solution_card" data-location="{{ user.address }}" data-craftowner="{{ user.username }}">
+          <img src="{{ url_for('static', filename=user.image_file) }}" style="height: 400px;" class="card-img-top" alt="plumbing image">
+          <div class="card-body">
+            <h5 class="card-title">Craft Owner Name: {{ user.username }}</h5>
+            <p class="card-text">Location: {{ user.address }}</p>
+            <p class="card-text">Description: {{ user.description }}</p>
+            <a href="{{ url_for('booking') }}" class="btn btn-primary">Book Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <br>
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <script>
+    // Filter cards based on search input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchQuery = this.value.toLowerCase();
+        const filterBy = document.getElementById('filterSelect').value;
+        const cards = document.querySelectorAll('.solution_card');
+
+        cards.forEach(card => {
+            let dataValue = '';
+            if (filterBy === 'location') {
+                dataValue = card.dataset.location.toLowerCase();
+            } else if (filterBy === 'craftowner') {
+                dataValue = card.dataset.craftowner.toLowerCase();
+            }
+
+            const displayStyle = dataValue.includes(searchQuery) ? 'inline-block' : 'none';
+            card.parentElement.style.display = displayStyle;
+        });
+    });
+  </script>
+  {% endblock %}
+</body>
+</html>
