@@ -62,8 +62,10 @@ def register():
             user.description = form.description.data
         db.session.add(user)
         db.session.commit()
+        login_user(user)
+
         flash(f"Account created successfully for {form.username.data} as a {form.user_type.data}", "success")
-        return redirect(url_for("login"))
+        return redirect(url_for("home"))
     return render_template("register.html", title="Register", form=form)
 
 @app.route("/login", methods=["GET", "POST"])
