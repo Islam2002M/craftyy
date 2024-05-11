@@ -15,3 +15,21 @@ def get_cleaning_users_from_database():
     cleaning_users = User.query.filter_by(service_type='Cleaning').all()
 
     return cleaning_users
+
+def get_movingFur_users_from_database():
+    # Query users with service type of plumbing
+    movingFur_users = User.query.filter_by(service_type='Moving Furniture').all()
+
+    return movingFur_users
+
+def get_Painting_users_from_database():
+    # Query users with service type of plumbing
+    Painting_users = User.query.filter_by(service_type='Painting').all()
+
+    return Painting_users
+
+def get_Carpentry_users_from_database():
+    # Query users with service type of plumbing
+    Carpentry_users = User.query.filter_by(service_type='Carpentry').all()
+
+    return Carpentry_users
