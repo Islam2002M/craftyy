@@ -4,6 +4,9 @@ from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, session
 from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm,AppointmentForm
+from flask import render_template, url_for, flash, redirect, request
+from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
+from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
 from pythonic import app, bcrypt, db
 from flask_login import login_required, login_user, current_user, logout_user
 from nltk.corpus import stopwords
@@ -176,6 +179,10 @@ def Carpentry():
 def suggestion():
     problem_form = ProblemForm()  # Instantiate the ProblemForm
     return render_template('suggestion.html', problem_form=problem_form)
+@app.route('/booking', methods=['GET', 'POST'])
+def booking():
+    problem_form = ProblemForm()  # Instantiate the ProblemForm
+    return render_template('booking.html', problem_form=problem_form)
 
 @app.route('/handle_problem_form', methods=['POST'])
 def handle_problem_form():
@@ -187,6 +194,9 @@ def handle_problem_form():
         # Retrieve craft owners' names, descriptions, addresses, and service types from the User table in the database
         craft_owners = User.query.filter_by(user_type='Craft Owner').all()
         craft_owner_data = [(craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type) for craft_owner in craft_owners]
+        # Retrieve craft owners' names and descriptions from the User table in the database
+        craft_owners = User.query.filter_by(user_type='Craft Owner').all()
+        craft_owner_data = [(craft_owner.username, craft_owner.description) for craft_owner in craft_owners]
 
         # Recommend craft owners based on cosine similarity
         recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, problem_description)
@@ -198,6 +208,7 @@ def handle_problem_form():
     return render_template('suggestion.html', problem_form=problem_form)
 
 
+    return render_template('booking.html', problem_form=problem_form)
 
 def preprocess_text(text):
     if text is None:
@@ -206,6 +217,10 @@ def preprocess_text(text):
     # Tokenization, filtering, and lemmatization
     stop_words = set(stopwords.words("english"))
     lemmatizer = WordNetLemmatizer()
+    # Tokenization, filtering, lemmatization, and stemming
+    stop_words = set(stopwords.words("english"))
+    lemmatizer = WordNetLemmatizer()
+    stemmer = PorterStemmer()
     preprocessed_tokens = []
     for word, tag in pos_tag(word_tokenize(text)):
         if word.casefold() not in stop_words and word.isalpha():
@@ -218,6 +233,9 @@ def preprocess_text(text):
     print("Preprocessed Text:", preprocessed_text)  # Debugging print statement
     return preprocessed_text
 
+    stemmed_text = ' '.join([stemmer.stem(word) for word in preprocessed_tokens])
+    print("Preprocessed Text:", stemmed_text)  # Debugging print statement
+    return stemmed_text
 
 def get_wordnet_pos(tag):
     if tag.startswith("J"):
@@ -234,11 +252,16 @@ def get_wordnet_pos(tag):
 def recommend_craft_owners(craft_owner_data, customer_problem_description):
     # Preprocess craft owner descriptions and customer problem description
     preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) + " " + preprocess_text(desc[2]) for desc in craft_owner_data]
+def recommend_craft_owners(craft_owner_descriptions, customer_problem_description):
+    # Preprocess craft owner descriptions and customer problem description
+    preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) for desc in craft_owner_descriptions]
     preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
 
     # Calculate TF-IDF vectors
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(preprocessed_craft_owner_descriptions + [preprocessed_customer_problem_description])
+
+    print("TF-IDF Matrix:", tfidf_matrix.toarray())  # Debugging print statement
 
     # Calculate cosine similarity
     similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
@@ -259,3 +282,6 @@ def recommend_craft_owners(craft_owner_data, customer_problem_description):
         })
 
     return recommended_craft_owner_data
+    sorted_craft_owners = sorted(zip(craft_owner_descriptions, similarity_matrix), key=lambda x: x[1], reverse=True)
+
+    return sorted_craft_owners

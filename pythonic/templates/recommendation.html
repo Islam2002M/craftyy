@@ -64,6 +64,17 @@
         <br>
         <div class="row" id="card-container">
             {% for craft_owner_data in recommended_craft_owner_data %}
+</head>
+<body>
+    {% extends "layout.html" %}
+  {% block content %}
+  <br>
+    <div class="container">
+        <h1>Recommendation</h1>
+        <p>The problem description submitted is: {{ problem_description }}</p>
+        
+        <div class="row">
+            {% for craft_owner_name, craft_owner_description in recommended_craft_owner_data %}
                 {% if loop.index <= 5 %}
                     <div class="col-md-4 mb-4">
                         <div class="card">
@@ -73,6 +84,8 @@
                                 <p class="card-text">{{ craft_owner_data['address'] }}</p>
                                 <p class="similarity-text">Similarity: {{ craft_owner_data['similarity_score'] | round(2) }}</p>
                                 <a href="/appointments?craft_owner={{ craft_owner_data['name'] }}&service_type={{ craft_owner_data['service_type'] }}" class="btn btn-primary">Book Now</a>
+                                <h5 class="card-title">{{ craft_owner_name }}</h5>
+                                <p class="card-text">{{ craft_owner_description }}</p>
                             </div>
                         </div>
                     </div>
@@ -100,3 +113,6 @@
     </body>
     </html>
     {% endblock %}
+</body>
+</html>
+{% endblock %}

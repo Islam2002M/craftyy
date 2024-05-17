@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField,SelectField,DateField, TimeField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField,SelectField
 from wtforms.validators import (
     DataRequired,
     Length,
@@ -12,6 +13,8 @@ from wtforms.validators import (
     ValidationError,
     Optional,
 )
+
+
 from pythonic.models import User
 
 class RegistrationForm(FlaskForm):
@@ -92,6 +95,13 @@ class UpdateProfileForm(FlaskForm):
             Regexp('^[0-9]*$', message='Contact number must contain only numbers')
         ]
     )
+    "Contact Number",
+    validators=[
+        DataRequired(),
+        Length(min=10, max=10),
+        Regexp('^[0-9]*$', message='Contact number must contain only numbers')
+    ]
+
     description = TextAreaField("Description")
     picture = FileField(
         "Update Profile Picture", validators=[FileAllowed(["jpg", "png"])]
@@ -110,6 +120,7 @@ class UpdateProfileForm(FlaskForm):
             if user:
                 raise ValidationError(
                     "Username already exists! Please choose a different one."
+                    "Username already exists! Please chosse a different one"
                 )
 
     def validate_email(self, email):
@@ -143,3 +154,7 @@ class AppointmentForm(FlaskForm):
     ], validators=[DataRequired()])
     message = TextAreaField('Message')
     craft_owner=StringField('craftowner')
+    
+class ProblemForm(FlaskForm):
+    problem_description = TextAreaField('Problem Description', validators=[DataRequired()])
+    submit = SubmitField('Submit')
