@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plumbing Service Page</title>
+  <style>
+    .card {
+      /* margin-bottom: 20px; */
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.2);
+      transform: scale(1.05);
+    }
+
+
+    .card-image img {
+      width: 100%;
+      height: 400px;
+      padding: 20px;
+    }
+
+    /* Styling for the search box */
+    #searchInput {
+        width: 50%;
+        padding: 10px;
+        margin-bottom: 20px;
+        margin-left: 30px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  {% extends "layout.html" %}
+  {% block content %}
+  <br>
+  <div class="container">
+    <!-- Search input -->
+    <input type="text" id="searchInput" placeholder="Search by a plumber Location ...">
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="cardContainer">
+      {% for user in plumbing_users %}
+      <div class="col">
+        <div class="card solution_card" style="height: auto;">
+          <div class="card-image">
+            <img src="{{ url_for('static', filename=user.image_file) }}" alt="Plumbing Image">
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Craft Owner Name: {{ user.username }}</h5>
+            <p class="card-text">Location: {{ user.address }}</p>
+            <p class="card-text">Description: {{ user.description }}</p>
+            <a href="{{ url_for('appointments') }}" class="btn btn-primary">Book Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <script>
+    // Filter cards based on search input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchQuery = this.value.toLowerCase();
+        const cards = document.querySelectorAll('.solution_card');
+
+        cards.forEach(card => {
+            const location = card.querySelector('.card-body p:nth-of-type(1)').innerText.toLowerCase();
+
+            if (location.includes(searchQuery)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    // Get the maximum height of cards and set all cards to that height
+    window.onload = function() {
+        const cards = document.querySelectorAll('.solution_card');
+        let maxHeight = 0;
+
+        cards.forEach(card => {
+            maxHeight = Math.max(maxHeight, card.offsetHeight);
+        });
+
+        cards.forEach(card => {
+            card.style.height = maxHeight + 'px';
+        });
+    };
+  </script>
+  {% endblock %}
+</body>
+</html>
