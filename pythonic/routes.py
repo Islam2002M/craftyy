@@ -1,9 +1,6 @@
 import secrets
 import os
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, session
-from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
-from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm,AppointmentForm
 from flask import render_template, url_for, flash, redirect, request
 from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
@@ -39,35 +36,9 @@ def home():
 def about():
     return render_template('about.html')
 
-
 @app.route("/services")
 def services():
     return render_template('services.html')
-
-@app.route('/appointments', methods=['GET', 'POST'])
-def appointments():
-    form = AppointmentForm()
-    craft_owner_name = request.args.get('craft_owner')
-    service_type = request.args.get('service_type')
-
-    if request.method == 'POST' and form.validate_on_submit():
-        form_data = {
-            'first_name': form.first_name.data,
-            'last_name': form.last_name.data,
-            'phone_number': form.phone_number.data,
-            'street_address': form.street_address.data,
-            'city': form.city.data,
-            'state': form.state.data,
-            'postal_code': form.postal_code.data,
-            'appointment_date': form.appointment_date.data,
-            'appointment_time': form.appointment_time.data,
-            'appointment_purpose': form.appointment_purpose.data,
-            'message': form.message.data,
-            'craft_owner': craft_owner_name
-        }
-        return render_template('appointments.html', form=form, craft_owner=craft_owner_name, service_type=service_type, form_data=form_data)
-    
-    return render_template('appointments.html', form=form, craft_owner=craft_owner_name, service_type=service_type, form_data=None)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -175,10 +146,6 @@ def Carpentry():
     Carpentry_users = get_Carpentry_users_from_database()
     return render_template('Carpentry.html', Carpentry_users=Carpentry_users)
 
-@app.route('/suggestion', methods=['GET', 'POST'])
-def suggestion():
-    problem_form = ProblemForm()  # Instantiate the ProblemForm
-    return render_template('suggestion.html', problem_form=problem_form)
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
     problem_form = ProblemForm()  # Instantiate the ProblemForm
@@ -191,9 +158,6 @@ def handle_problem_form():
         # Retrieve the problem description from the form data
         problem_description = problem_form.problem_description.data
 
-        # Retrieve craft owners' names, descriptions, addresses, and service types from the User table in the database
-        craft_owners = User.query.filter_by(user_type='Craft Owner').all()
-        craft_owner_data = [(craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type) for craft_owner in craft_owners]
         # Retrieve craft owners' names and descriptions from the User table in the database
         craft_owners = User.query.filter_by(user_type='Craft Owner').all()
         craft_owner_data = [(craft_owner.username, craft_owner.description) for craft_owner in craft_owners]
@@ -205,18 +169,12 @@ def handle_problem_form():
         return render_template('recommendation.html', problem_description=problem_description, recommended_craft_owner_data=recommended_craft_owner_data)
     
     # If form is not valid, render the form again
-    return render_template('suggestion.html', problem_form=problem_form)
-
-
     return render_template('booking.html', problem_form=problem_form)
 
 def preprocess_text(text):
     if text is None:
         return ""  # Return empty string if text is None
     
-    # Tokenization, filtering, and lemmatization
-    stop_words = set(stopwords.words("english"))
-    lemmatizer = WordNetLemmatizer()
     # Tokenization, filtering, lemmatization, and stemming
     stop_words = set(stopwords.words("english"))
     lemmatizer = WordNetLemmatizer()
@@ -229,10 +187,6 @@ def preprocess_text(text):
                 preprocessed_tokens.append(lemmatizer.lemmatize(word, pos))
             else:
                 preprocessed_tokens.append(lemmatizer.lemmatize(word))
-    preprocessed_text = ' '.join(preprocessed_tokens)
-    print("Preprocessed Text:", preprocessed_text)  # Debugging print statement
-    return preprocessed_text
-
     stemmed_text = ' '.join([stemmer.stem(word) for word in preprocessed_tokens])
     print("Preprocessed Text:", stemmed_text)  # Debugging print statement
     return stemmed_text
@@ -249,9 +203,6 @@ def get_wordnet_pos(tag):
     else:
         return None
 
-def recommend_craft_owners(craft_owner_data, customer_problem_description):
-    # Preprocess craft owner descriptions and customer problem description
-    preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) + " " + preprocess_text(desc[2]) for desc in craft_owner_data]
 def recommend_craft_owners(craft_owner_descriptions, customer_problem_description):
     # Preprocess craft owner descriptions and customer problem description
     preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) for desc in craft_owner_descriptions]
@@ -267,21 +218,6 @@ def recommend_craft_owners(craft_owner_descriptions, customer_problem_descriptio
     similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
 
     # Get craft owners sorted by similarity score in descending order
-    sorted_craft_owners = sorted(zip(craft_owner_data, similarity_matrix), key=lambda x: x[1], reverse=True)
-    
-    # Prepare craft owner data as a list of dictionaries
-    recommended_craft_owner_data = []
-    for craft_owner, similarity_score in sorted_craft_owners:
-        name, description, address, service_type = craft_owner  # Ensure service_type is included here
-        recommended_craft_owner_data.append({
-            'name': name,
-            'description': description,
-            'address': address,
-            'service_type': service_type,  # Include service_type
-            'similarity_score': similarity_score[0]  # Assuming similarity_score is a single value in a list
-        })
-
-    return recommended_craft_owner_data
     sorted_craft_owners = sorted(zip(craft_owner_descriptions, similarity_matrix), key=lambda x: x[1], reverse=True)
 
     return sorted_craft_owners
