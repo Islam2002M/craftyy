@@ -1,9 +1,9 @@
 import secrets
 import os
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, session
 from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
-from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm
+from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm,AppointmentForm,NewLessonForm
 from pythonic import app, bcrypt, db
 from flask_login import login_required, login_user, current_user, logout_user
 from nltk.corpus import stopwords
@@ -11,7 +11,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from pythonic.models import User
+from pythonic.models import User,Availability
 from nltk import pos_tag
 from nltk.corpus import wordnet
 from nltk.stem.porter import PorterStemmer
@@ -36,9 +36,35 @@ def home():
 def about():
     return render_template('about.html')
 
+
 @app.route("/services")
 def services():
     return render_template('services.html')
+
+@app.route('/appointments', methods=['GET', 'POST'])
+def appointments():
+    form = AppointmentForm()
+    craft_owner_name = request.args.get('craft_owner')
+    service_type = request.args.get('service_type')  # Get service_type from query parameters
+    form_data = None  # Initialize form_data
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form_data = {
+            'first_name': form.first_name.data,
+            'last_name': form.last_name.data,
+            'phone_number': form.phone_number.data,
+            'street_address': form.street_address.data,
+            'city': form.city.data,
+            'state': form.state.data,
+            'postal_code': form.postal_code.data,
+            'appointment_date': form.appointment_date.data,
+            'appointment_time': form.appointment_time.data,
+            'appointment_purpose': form.appointment_purpose.data,
+            'message': form.message.data,
+            'craft_owner': craft_owner_name
+        }
+    
+    return render_template('appointments.html', form=form, craft_owner=craft_owner_name, service_type=service_type, form_data=form_data)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -89,9 +115,18 @@ def logout():
     logout_user()
     return redirect(url_for("home"))
 
-@app.route("/dashboard", methods=["GET", "POST"])
+@app.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
+    return render_template(
+        "dashboard.html",
+        title="Dashboard",
+        active_tab=None
+    )
+
+@app.route("/dashboard/profile", methods=["GET", "POST"])
+@login_required
+def profile():
     profile_form = UpdateProfileForm()
     if profile_form.validate_on_submit():
         if profile_form.picture.data:
@@ -104,7 +139,7 @@ def dashboard():
         current_user.description = profile_form.description.data
         db.session.commit()
         flash("Your profile has been updated", "success")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("profile"))
     elif request.method == "GET":
         profile_form.username.data = current_user.username
         profile_form.email.data = current_user.email
@@ -113,12 +148,50 @@ def dashboard():
         profile_form.description.data = current_user.description
     image_file = url_for("static", filename=f"user_pics/{current_user.image_file}")
     return render_template(
-        "dashboard.html",
-        title="Dashboard",
+        "profile.html",
+        title="Profile",
         profile_form=profile_form,
         image_file=image_file,
+        active_tab="profile",
     )
+@app.route("/dashboard/new_lesson", methods=["GET", "POST"])
+@login_required
+def new_lesson():
+    new_lesson_form  = NewLessonForm()
+    if new_lesson_form .validate_on_submit():
+        # Extract data from the form
+        start_time = new_lesson_form .start_time.data
+        end_time = new_lesson_form .end_time.data
+        all_days = new_lesson_form .all_days.data
 
+        # If "Work All Days" checkbox is selected, set working_days to "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
+        if all_days:
+            working_days = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
+        else:
+            working_days = new_lesson_form .workingDays.data
+
+        # Create a new Availability object
+        availability = Availability(
+            start_time=start_time,
+            end_time=end_time,
+            days=working_days,
+            owner_id=current_user.id  # Associate with the current user
+        )
+
+        # Add the availability to the database session
+        db.session.add(availability)
+        db.session.commit()
+
+        flash("Your availability has been updated!", "success")
+        return redirect(url_for("dashboard"))  # Redirect to dashboard page after submission
+
+    # If the form is not submitted or validation fails, render the new_lesson.html template
+    return render_template(
+        "new_lesson.html",
+        title="New Lesson",
+        new_lesson_form =new_lesson_form ,
+        active_tab="new_lesson"
+    )
 @app.route('/plumbing')  
 def plumbing():          
     plumbing_users = get_plumbing_users_from_database()
@@ -158,9 +231,9 @@ def handle_problem_form():
         # Retrieve the problem description from the form data
         problem_description = problem_form.problem_description.data
 
-        # Retrieve craft owners' names and descriptions from the User table in the database
+        # Retrieve craft owners' names, descriptions, addresses, and service types from the User table in the database
         craft_owners = User.query.filter_by(user_type='Craft Owner').all()
-        craft_owner_data = [(craft_owner.username, craft_owner.description) for craft_owner in craft_owners]
+        craft_owner_data = [(craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type) for craft_owner in craft_owners]
 
         # Recommend craft owners based on cosine similarity
         recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, problem_description)
@@ -169,16 +242,16 @@ def handle_problem_form():
         return render_template('recommendation.html', problem_description=problem_description, recommended_craft_owner_data=recommended_craft_owner_data)
     
     # If form is not valid, render the form again
-    return render_template('booking.html', problem_form=problem_form)
+    return render_template('suggestion.html', problem_form=problem_form)
+
 
 def preprocess_text(text):
     if text is None:
         return ""  # Return empty string if text is None
     
-    # Tokenization, filtering, lemmatization, and stemming
+    # Tokenization, filtering, and lemmatization
     stop_words = set(stopwords.words("english"))
     lemmatizer = WordNetLemmatizer()
-    stemmer = PorterStemmer()
     preprocessed_tokens = []
     for word, tag in pos_tag(word_tokenize(text)):
         if word.casefold() not in stop_words and word.isalpha():
@@ -187,9 +260,10 @@ def preprocess_text(text):
                 preprocessed_tokens.append(lemmatizer.lemmatize(word, pos))
             else:
                 preprocessed_tokens.append(lemmatizer.lemmatize(word))
-    stemmed_text = ' '.join([stemmer.stem(word) for word in preprocessed_tokens])
-    print("Preprocessed Text:", stemmed_text)  # Debugging print statement
-    return stemmed_text
+    preprocessed_text = ' '.join(preprocessed_tokens)
+    print("Preprocessed Text:", preprocessed_text)  # Debugging print statement
+    return preprocessed_text
+
 
 def get_wordnet_pos(tag):
     if tag.startswith("J"):
@@ -203,21 +277,31 @@ def get_wordnet_pos(tag):
     else:
         return None
 
-def recommend_craft_owners(craft_owner_descriptions, customer_problem_description):
+def recommend_craft_owners(craft_owner_data, customer_problem_description):
     # Preprocess craft owner descriptions and customer problem description
-    preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) for desc in craft_owner_descriptions]
+    preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) + " " + preprocess_text(desc[2]) for desc in craft_owner_data]
     preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
 
     # Calculate TF-IDF vectors
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(preprocessed_craft_owner_descriptions + [preprocessed_customer_problem_description])
 
-    print("TF-IDF Matrix:", tfidf_matrix.toarray())  # Debugging print statement
-
     # Calculate cosine similarity
     similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
 
     # Get craft owners sorted by similarity score in descending order
-    sorted_craft_owners = sorted(zip(craft_owner_descriptions, similarity_matrix), key=lambda x: x[1], reverse=True)
+    sorted_craft_owners = sorted(zip(craft_owner_data, similarity_matrix), key=lambda x: x[1], reverse=True)
+    
+    # Prepare craft owner data as a list of dictionaries
+    recommended_craft_owner_data = []
+    for craft_owner, similarity_score in sorted_craft_owners:
+        name, description, address, service_type = craft_owner  # Ensure service_type is included here
+        recommended_craft_owner_data.append({
+            'name': name,
+            'description': description,
+            'address': address,
+            'service_type': service_type,  # Include service_type
+            'similarity_score': similarity_score[0]  # Assuming similarity_score is a single value in a list
+        })
 
-    return sorted_craft_owners
+    return recommended_craft_owner_data

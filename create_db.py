@@ -1,7 +1,4 @@
-from pythonic import create_app, db
-
-# Create the Flask application instance
-app = create_app()
+from pythonic import app, db
 
 # Push an application context to make sure db.create_all() runs within it
 with app.app_context():

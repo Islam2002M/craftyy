@@ -18,6 +18,7 @@ class User(db.Model, UserMixin):
     service_type = db.Column(db.String(20), nullable=True)  # Set nullable to True
     description = db.Column(db.Text, nullable=True)  # Set nullable to True
     service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=True)
+    availability = db.relationship('Availability', uselist=False, backref='owner', lazy=True)  # One-to-one relationship
     works=db.relationship("Work", backref="maker", lazy=True)
     # lessons = db.relationship("Lesson", backref="author", lazy=True)
 
@@ -55,3 +56,12 @@ class Service(db.Model):
 
     def __repr__(self):
         return f"Service('{self.Name}')"
+    
+class Availability(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    days = db.Column(db.String(100), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)  # Ensure one-to-one relationship
+    def __repr__(self):
+        return f"Availability('{self.id}')"
