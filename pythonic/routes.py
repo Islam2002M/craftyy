@@ -1,7 +1,8 @@
 import secrets
 import os
+import logging
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, session
+from flask import  render_template, url_for, flash, redirect, request, session
 from instance.helper import get_cleaning_users_from_database, get_electrical_users_from_database, get_plumbing_users_from_database,get_Carpentry_users_from_database,get_Painting_users_from_database,get_movingFur_users_from_database
 from pythonic.forms import ProblemForm, RegistrationForm, LoginForm, UpdateProfileForm,AppointmentForm,NewLessonForm
 from pythonic import app, bcrypt, db
@@ -11,7 +12,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from pythonic.models import User,Availability
+from pythonic.models import Appointment, Slot, User,Availability
 from nltk import pos_tag
 from nltk.corpus import wordnet
 from nltk.stem.porter import PorterStemmer
@@ -41,79 +42,72 @@ def about():
 def services():
     return render_template('services.html')
 
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/appointments', methods=['GET', 'POST'])
 def appointments():
     form = AppointmentForm()
     craft_owner_name = request.args.get('craft_owner')
     service_type = request.args.get('service_type')  # Get service_type from query parameters
-    form_data = None  # Initialize form_data
+
+    print(f"craft_owner_name: {craft_owner_name}")
+    print(f"service_type: {service_type}")
 
     if request.method == 'POST' and form.validate_on_submit():
-        form_data = {
-            'first_name': form.first_name.data,
-            'last_name': form.last_name.data,
-            'phone_number': form.phone_number.data,
-            'street_address': form.street_address.data,
-            'city': form.city.data,
-            'state': form.state.data,
-            'postal_code': form.postal_code.data,
-            'appointment_date': form.appointment_date.data,
-            'appointment_time': form.appointment_time.data,
-            'appointment_purpose': form.appointment_purpose.data,
-            'message': form.message.data,
-            'craft_owner': craft_owner_name
-        }
-    
-    return render_template('appointments.html', form=form, craft_owner=craft_owner_name, service_type=service_type, form_data=form_data)
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("home"))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
-            "utf-8"
+        print("Form submitted")
+        appointment = Appointment(
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            phone_number=form.phone_number.data,
+            street_address=form.street_address.data,
+            city=form.city.data,
+            state=form.state.data,
+            postal_code=form.postal_code.data,
+            appointment_date=form.appointment_date.data,
+            appointment_time=form.appointment_time.data,
+            craft_owner=form.craft_owner.data,
+            appointment_purpose=form.appointment_purpose.data,
+            message=form.message.data
         )
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            password=hashed_password,
-            address=form.address.data,
-            contactNumber=form.contactNumber.data,
-            user_type=form.user_type.data,
-        )
-        if form.user_type.data == 'craft_owner':
-            user.service_type = form.service_type.data
-            user.description = form.description.data
-        db.session.add(user)
+        db.session.add(appointment)
         db.session.commit()
-        login_user(user)
+        flash('Your appointment has been booked!', 'success')
+        return redirect(url_for('appointment_summary', appointment_id=appointment.id))
 
-        flash(f"Account created successfully for {form.username.data} as a {form.user_type.data}", "success")
-        return redirect(url_for("home"))
-    return render_template("register.html", title="Register", form=form)
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("home"))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            flash("You have been logged in!", "success")
-            return redirect(next_page) if next_page else redirect(url_for("home"))
+    # Fetch available slots by craft owner's name
+    available_slots = []
+    if craft_owner_name:
+        print(f"Looking for craft owner with username: {craft_owner_name}")
+        user = User.query.filter_by(username=craft_owner_name).first()
+        if user:
+            print(f"Craft owner found: {user}")
+            if user.availability:
+                availability = user.availability
+                print(f"Availability found: {availability}")
+                # Generate slots for the availability if they do not exist
+                if not availability.slots:
+                    print("No slots found, generating slots...")
+                    availability.generate_slots(duration=60)  # Assume 30 minutes slot duration
+                    db.session.commit()  # Commit the generated slots to the database
+                available_slots = Slot.query.filter_by(availability_id=availability.id).all()
+                print(f"Available slots: {available_slots}")
+            else:
+                flash('Craft owner has no availability.', 'error')
+                print("Craft owner has no availability.")
         else:
-            flash("Login Unsuccessful. Please check credentials", "danger")
-    return render_template("login.html", title="Login", form=form)
+            flash('Craft owner not found.', 'error')
+            print("Craft owner not found.")
+    else:
+        flash('Craft owner name not provided.', 'error')
+        print("Craft owner name not provided.")
 
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect(url_for("home"))
+    return render_template('appointments.html', form=form, available_slots=available_slots, craft_owner=craft_owner_name, service_type=service_type)
 
 @app.route("/dashboard", methods=["GET"])
 @login_required
@@ -157,18 +151,19 @@ def profile():
 @app.route("/dashboard/new_lesson", methods=["GET", "POST"])
 @login_required
 def new_lesson():
-    new_lesson_form  = NewLessonForm()
-    if new_lesson_form .validate_on_submit():
+    new_lesson_form = NewLessonForm()
+
+    if new_lesson_form.validate_on_submit():
         # Extract data from the form
-        start_time = new_lesson_form .start_time.data
-        end_time = new_lesson_form .end_time.data
-        all_days = new_lesson_form .all_days.data
+        start_time = new_lesson_form.start_time.data
+        end_time = new_lesson_form.end_time.data
+        all_days = new_lesson_form.all_days.data
 
         # If "Work All Days" checkbox is selected, set working_days to "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
         if all_days:
             working_days = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
         else:
-            working_days = new_lesson_form .workingDays.data
+            working_days = ','.join(new_lesson_form.workingDays.data)
 
         # Create a new Availability object
         availability = Availability(
@@ -189,9 +184,10 @@ def new_lesson():
     return render_template(
         "new_lesson.html",
         title="New Lesson",
-        new_lesson_form =new_lesson_form ,
+        new_lesson_form=new_lesson_form,
         active_tab="new_lesson"
     )
+
 @app.route('/plumbing')  
 def plumbing():          
     plumbing_users = get_plumbing_users_from_database()

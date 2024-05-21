@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pythonic import db, login_manager
 from flask_login import UserMixin
 
@@ -47,12 +47,7 @@ class Service(db.Model):
     UserProvides = db.relationship("User", backref="provider", lazy=True)
     #lessons = db.relationship("Lesson", backref="course_name", lazy=True)
 
-# class Booking(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     serviceName = db.Column(db.String(50), unique=True, nullable=False)
-#     Needs = db.Column(db.Text, nullable=False)  # Set nullable to True
-#     UserProvides = db.relationship("User", backref="provider", lazy=True)
-#     #lessons = db.relationship("Lesson", backref="course_name", lazy=True)
+
 
     def __repr__(self):
         return f"Service('{self.Name}')"
@@ -61,7 +56,51 @@ class Availability(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    days = db.Column(db.String(100), nullable=False)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)  # Ensure one-to-one relationship
+    days = db.Column(db.String(10), nullable=False)  # Assuming this is what you mean by 'days'
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    slots = db.relationship('Slot', backref='availability', lazy=True)
+    
+    def generate_slots(self, duration):
+        """Generate slots based on start_time, end_time, and duration in minutes."""
+        start = datetime.combine(datetime.today(), self.start_time)
+        end = datetime.combine(datetime.today(), self.end_time)
+        slot_duration = timedelta(minutes=duration)
+
+        current_time = start
+        while current_time + slot_duration <= end:
+            period = f"{current_time.time()}-{(current_time + slot_duration).time()}"
+            slot = Slot(period=period, duration=duration, availability_id=self.id)
+            db.session.add(slot)
+            current_time += slot_duration
+
     def __repr__(self):
-        return f"Availability('{self.id}')"
+        return f"Availability('{self.start_time}', '{self.end_time}', '{self.days}')"
+
+class Slot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    period = db.Column(db.String(20), nullable=False)
+    duration = db.Column(db.Integer, nullable=False)  # Define duration column
+    availability_id = db.Column(db.Integer, db.ForeignKey('availability.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Slot('{self.id}', '{self.period}')"
+
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)
+    street_address = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(50), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=False)
+    appointment_date = db.Column(db.Date, nullable=False)
+    appointment_time = db.Column(db.Time, nullable=False)
+    craft_owner = db.Column(db.String(50), nullable=False)
+    customer_id = db.Column(db.Integer, nullable=False) 
+    appointment_purpose = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Appointment {self.first_name} {self.last_name} on {self.appointment_date} at {self.appointment_time}>"

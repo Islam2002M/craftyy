@@ -45,21 +45,18 @@
                             {{ form.appointment_date(class_="form-control", placeholder="Appointment Date") }}
                         </div>
                         <div class="col-md-6">
-                            {{ form.appointment_time(class_="form-control", placeholder="Appointment Time") }}
+                            <select class="form-select" name="appointment_time" id="appointment_time">
+                                <option selected disabled>Select a Time Slot</option>
+                                {% for slot in available_slots %}
+                                    <option value="{{ slot.period }}">{{ slot.period }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <input type="text" class="form-control" name="craft_owner" value="{{ craft_owner }}" placeholder="Craft Owner" readonly>
+                            <input type="text" class="form-control" name="craft_owner" value="{{ craft_owner }}"  readonly>
                         </div>
                         <div class="col-12">
-                            <select class="form-select" name="appointment_purpose">
-                                <option selected disabled>Purpose Of Appointment</option>
-                                <option value="Carpentry" {% if service_type == 'Carpentry' %}selected{% endif %}>Carpentry</option>
-                                <option value="Cleaning" {% if service_type == 'Cleaning' %}selected{% endif %}>Cleaning</option>
-                                <option value="Electrical" {% if service_type == 'electrical' %}selected{% endif %}>Electrical</option>
-                                <option value="Moving Furniture" {% if service_type == 'Moving Furniture' %}selected{% endif %}>Moving Furniture</option>
-                                <option value="Painting" {% if service_type == 'Painting' %}selected{% endif %}>Painting</option>
-                                <option value="Plumbing" {% if service_type == 'plumbing' %}selected{% endif %}>Plumbing</option>
-                            </select>
+                            {{ form.appointment_purpose(class_="form-select", readonly="readonly") }}
                         </div>
                         <div class="col-12">
                             {{ form.message(class_="form-control", placeholder="Message") }}
@@ -70,30 +67,10 @@
                         <button type="button" class="btn btn-outline-secondary float-end me-2">Cancel</button>
                     </div>
                 </form>
-                {% if form_data %}
-                <div class="col-12 mt-5">
-                    <h4>Appointment Summary:</h4>
-                    <p>First Name: {{ form_data.first_name }}</p>
-                    <p>Last Name: {{ form_data.last_name }}</p>
-                    <p>Phone Number: {{ form_data.phone_number }}</p>
-                    <p>Street Address: {{ form_data.street_address }}</p>
-                    <p>City: {{ form_data.city }}</p>
-                    <p>State: {{ form_data.state }}</p>
-                    <p>Postal Code: {{ form_data.postal_code }}</p>
-                    <p>Appointment Date: {{ form_data.appointment_date }}</p>
-                    <p>Appointment Time: {{ form_data.appointment_time }}</p>
-                    <p>Appointment Purpose: {{ form_data.appointment_purpose }}</p>
-                    <p>Message: {{ form_data.message }}</p>
-                    {% if craft_owner %}
-                    <p>Craft Owner: {{ craft_owner }}</p>
-                    {% endif %}
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+   
 </body>
 </html>
 {% endblock %}
