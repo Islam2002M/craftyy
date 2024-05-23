@@ -1,3 +1,4 @@
+from datetime import datetime , time, timedelta 
 import secrets
 import os
 import logging
@@ -33,6 +34,34 @@ def save_picture(form_picture):
 def home():
     return render_template('home.html')
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("home"))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
+            "utf-8"
+        )
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=hashed_password,
+            address=form.address.data,
+            contactNumber=form.contactNumber.data,
+            user_type=form.user_type.data,
+        )
+        if form.user_type.data == 'craft_owner':
+            user.service_type = form.service_type.data
+            user.description = form.description.data
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+
+        flash(f"Account created successfully for {form.username.data} as a {form.user_type.data}", "success")
+        return redirect(url_for("home"))
+    return render_template("register.html", title="Register", form=form)
+ 
 @app.route("/aboutUs")
 def about():
     return render_template('about.html')
@@ -47,68 +76,111 @@ def logout():
     logout_user()
     return redirect(url_for("home"))
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
+def get_next_date_from_day(day_name):
+    """Given a day name, return the next date that matches the day."""
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    today = datetime.today()
+    today_day_index = today.weekday()
+    target_day_index = days.index(day_name.lower())
+    days_ahead = (target_day_index - today_day_index + 7) % 7
+    if days_ahead == 0:  # if it's the same day, move to the next week's day
+        days_ahead = 7
+    return today + timedelta(days=days_ahead)
 
 @app.route('/appointments', methods=['GET', 'POST'])
 def appointments():
     form = AppointmentForm()
-    craft_owner_name = request.args.get('craft_owner')
-    service_type = request.args.get('service_type')  # Get service_type from query parameters
 
-    print(f"craft_owner_name: {craft_owner_name}")
-    print(f"service_type: {service_type}")
+    # Get parameters from the form or the request args
+    craft_owner_name = request.args.get('craft_owner') or form.craft_owner.data
+    service_type = request.args.get('service_type') or form.service_type.data
 
-    if request.method == 'POST' and form.validate_on_submit():
-        print("Form submitted")
-        appointment = Appointment(
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
-            phone_number=form.phone_number.data,
-            street_address=form.street_address.data,
-            city=form.city.data,
-            state=form.state.data,
-            postal_code=form.postal_code.data,
-            appointment_date=form.appointment_date.data,
-            appointment_time=form.appointment_time.data,
-            craft_owner=form.craft_owner.data,
-            appointment_purpose=form.appointment_purpose.data,
-            message=form.message.data
-        )
-        db.session.add(appointment)
-        db.session.commit()
-        flash('Your appointment has been booked!', 'success')
-        return redirect(url_for('appointment_summary', appointment_id=appointment.id))
+    logging.debug(f"Received craft_owner: {craft_owner_name}")
+    logging.debug(f"Received service_type: {service_type}")
 
-    # Fetch available slots by craft owner's name
-    available_slots = []
     if craft_owner_name:
-        print(f"Looking for craft owner with username: {craft_owner_name}")
         user = User.query.filter_by(username=craft_owner_name).first()
         if user:
-            print(f"Craft owner found: {user}")
+            logging.debug(f"Found user: {user.username}")
             if user.availability:
                 availability = user.availability
-                print(f"Availability found: {availability}")
-                # Generate slots for the availability if they do not exist
-                if not availability.slots:
-                    print("No slots found, generating slots...")
-                    availability.generate_slots(duration=60)  # Assume 30 minutes slot duration
-                    db.session.commit()  # Commit the generated slots to the database
+                logging.debug(f"User availability: {availability}")
                 available_slots = Slot.query.filter_by(availability_id=availability.id).all()
-                print(f"Available slots: {available_slots}")
+                logging.debug(f"Available slots: {available_slots}")
+
+                available_days = availability.days.split(',')
+                logging.debug(f"Available days: {available_days}")
+
+                form.appointment_date.choices = [(day, day) for day in available_days]
+                form.appointment_time.choices = [(slot.id, slot.period) for slot in available_slots]
             else:
-                flash('Craft owner has no availability.', 'error')
-                print("Craft owner has no availability.")
+                logging.debug("User has no availability")
+                available_slots = []
         else:
-            flash('Craft owner not found.', 'error')
-            print("Craft owner not found.")
+            logging.debug("No user found with the given craft_owner name")
+            available_slots = []
     else:
-        flash('Craft owner name not provided.', 'error')
-        print("Craft owner name not provided.")
+        logging.debug("No craft_owner name provided")
+        user = None
+        available_slots = []
+
+    if request.method == 'POST':
+        try:
+            if form.validate_on_submit():
+                logging.debug("Form validation successful")
+
+                # Convert appointment_date from day name to date object
+                try:
+                    appointment_day_str = form.appointment_date.data
+                    appointment_date = get_next_date_from_day(appointment_day_str).date()
+                    logging.debug(f"Parsed appointment date: {appointment_date}")
+                except Exception as e:
+                    logging.error(f"Error parsing appointment date: {e}")
+                    flash('Invalid appointment date format', 'danger')
+                    return render_template('appointments.html', form=form, available_slots=available_slots, craft_owner=craft_owner_name, service_type=service_type)
+
+                # Convert appointment_time from string to time object
+                try:
+                    slot_id = form.appointment_time.data
+                    slot = Slot.query.get(slot_id)
+                    appointment_time = datetime.strptime(slot.period.split('-')[0], '%H:%M:%S').time()  # Adjust format as per slot.period
+                    logging.debug(f"Parsed appointment time: {appointment_time}")
+                except Exception as e:
+                    logging.error(f"Error parsing appointment time: {e}")
+                    flash('Invalid appointment time format', 'danger')
+                    return render_template('appointments.html', form=form, available_slots=available_slots, craft_owner=craft_owner_name, service_type=service_type)
+
+                appointment = Appointment(
+                    first_name=form.first_name.data,
+                    last_name=form.last_name.data,
+                    phone_number=form.phone_number.data,
+                    street_address=form.street_address.data,
+                    city=form.city.data,
+                    state=form.state.data,
+                    postal_code=form.postal_code.data,
+                    appointment_date=appointment_date,
+                    appointment_time=appointment_time,
+                    craft_owner=craft_owner_name,
+                    customer_id=2,  # Replace with the actual customer ID
+                    appointment_purpose=form.appointment_purpose.data,
+                    message=form.message.data
+                )
+                db.session.add(appointment)
+                db.session.commit()
+                logging.debug("Appointment successfully added to the database")
+                flash('Your appointment has been booked!', 'success')
+                return redirect(url_for('home'))
+            else:
+                logging.debug("Form validation failed")
+        except Exception as e:
+            logging.error(f"Unexpected error during appointment booking: {e}")
+            flash('An unexpected error occurred. Please try again.', 'danger')
+
+    # Pre-fill the form fields for read-only fields
+    form.craft_owner.data = craft_owner_name
+    form.service_type.data = service_type
 
     return render_template('appointments.html', form=form, available_slots=available_slots, craft_owner=craft_owner_name, service_type=service_type)
-
 @app.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():

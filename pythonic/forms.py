@@ -2,7 +2,7 @@ from tokenize import String
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import DateField, StringField, PasswordField, SubmitField, BooleanField, TextAreaField,SelectField, TimeField
+from wtforms import DateField, HiddenField, StringField, PasswordField, SubmitField, BooleanField, TextAreaField,SelectField, TimeField
 from wtforms.validators import (
     DataRequired,
     Length,
@@ -125,22 +125,17 @@ class NewLessonForm(FlaskForm):
     submit = SubmitField('Save')
 
 class AppointmentForm(FlaskForm):
-    first_name = StringField('First Name', validators=[DataRequired(), Length(max=50)])
-    last_name = StringField('Last Name', validators=[DataRequired(), Length(max=50)])
-    phone_number = StringField('Phone Number', validators=[DataRequired(), Length(min=10, max=15)])
-    street_address = StringField('Street Address', validators=[DataRequired(), Length(max=255)])
-    city = StringField('City', validators=[DataRequired(), Length(max=100)])
-    state = StringField('State', validators=[DataRequired(), Length(max=100)])
-    postal_code = StringField('Postal Code', validators=[DataRequired(), Length(max=20)])
-    appointment_date = DateField('Appointment Date', validators=[DataRequired()])
-    appointment_time = TimeField('Appointment Time', validators=[DataRequired()])
-    appointment_purpose = SelectField('Purpose Of Appointment', choices=[
-        ('Carpentry', 'Carpentry'),
-        ('Cleaning', 'Cleaning'),
-        ('Electrical', 'Electrical'),
-        ('Moving Furniture', 'Moving Furniture'),
-        ('Painting', 'Painting'),
-        ('Plumbing', 'Plumbing')
-    ], validators=[DataRequired()])
-    message = TextAreaField('Message')
-    craft_owner = StringField('Craft Owner', validators=[DataRequired(), Length(max=100)])
+    first_name = StringField('First Name', validators=[DataRequired()])
+    last_name = StringField('Last Name', validators=[DataRequired()])
+    phone_number = StringField('Phone Number', validators=[DataRequired()])
+    street_address = StringField('Street Address', validators=[DataRequired()])
+    city = StringField('City', validators=[DataRequired()])
+    state = StringField('State', validators=[DataRequired()])
+    postal_code = StringField('Postal Code', validators=[DataRequired()])
+    appointment_date = SelectField('Appointment Date', choices=[], validators=[DataRequired()])
+    appointment_time = SelectField('Appointment Time', choices=[], validators=[DataRequired()])
+    appointment_purpose = StringField('Purpose of Appointment', validators=[DataRequired()])
+    message = TextAreaField('Additional Message')
+    craft_owner = StringField('Craft Owner', render_kw={'readonly': True})
+    service_type = StringField('Service Type', render_kw={'readonly': True})
+    submit = SubmitField('Book Appointment')
